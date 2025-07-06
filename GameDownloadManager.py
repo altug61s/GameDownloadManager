@@ -12,14 +12,12 @@ import pystray
 import winsound
 from pypresence import Presence
 
-# --- Ayarlar ---
 STEAM_MANIFEST_PATH = os.path.expandvars(r"%ProgramFiles(x86)%\Steam\steamapps")
 STEAM_DOWNLOAD_PATH = os.path.join(STEAM_MANIFEST_PATH, "downloading")
 CHECK_INTERVAL = 5
 CONFIG_FILE = "config.json"
 DISCORD_CLIENT_ID = "1391515807984390264"
 
-# --- Config ---
 def load_config():
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as f:
@@ -32,7 +30,6 @@ def save_config(config):
 
 config = load_config()
 
-# --- Yardımcı Fonksiyon ---
 def get_folder_size(path):
     total = 0
     for dirpath, _, filenames in os.walk(path):
@@ -44,7 +41,6 @@ def get_folder_size(path):
                 continue
     return total
 
-# --- Steam İndirme Bilgisi ---
 def get_steam_game_info():
     if not os.path.exists(STEAM_DOWNLOAD_PATH):
         return None
@@ -62,7 +58,6 @@ def get_steam_game_info():
                             name = line.split('"')[3]
                             break
                     if name:
-                        # Ek olarak, dosya boyutunu veya klasör içeriğini kontrol ederek gerçekten indirme olup olmadığını teyit et
                         if os.listdir(downloading_path):
                             return ("Steam", name, downloading_path)
             except Exception as e:
@@ -70,7 +65,6 @@ def get_steam_game_info():
     return None
 
 
-# --- Epic İndirme Bilgisi (aktif indirme kontrolü) ---
 def check_epic_active_download(path):
     size_before = get_folder_size(path)
     time.sleep(CHECK_INTERVAL)
@@ -87,7 +81,6 @@ def get_epic_game_info():
                         return ("Epic (Manuel)", folder, folder_path)
     return None
 
-# --- Ana Uygulama ---
 class DownloadApp:
     def __init__(self):
         ctk.set_appearance_mode("dark")
@@ -98,7 +91,6 @@ class DownloadApp:
         self.root.resizable(False, False)
         self.root.title("Game Download Manager")
 
-        # --- Ana pencere elemanları ---
         self.label = ctk.CTkLabel(self.root, text="İndirme Bilgisi", font=("Arial", 20, "bold"))
         self.label.pack(pady=10)
 
@@ -115,12 +107,10 @@ class DownloadApp:
         self.settings_button = ctk.CTkButton(self.root, text="Ayarlar", command=self.show_settings)
         self.settings_button.pack(pady=5)
 
-        # --- Ayarlar overlay frame (başta gizli) ---
         self.settings_frame = ctk.CTkFrame(self.root, width=560, height=280)
         self.settings_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        self.settings_frame.place_forget()  # Başlangıçta gizli
+        self.settings_frame.place_forget()  
 
-        # Ayarlar içeriği:
         settings_title = ctk.CTkLabel(self.settings_frame, text="Epic Games Klasör Ayarları", font=("Arial", 16, "bold"))
         settings_title.pack(pady=10)
 
@@ -268,7 +258,6 @@ class DownloadApp:
         except:
             pass
 
-    # --- Ayarlar overlay göster/gizle ---
     def show_settings(self):
         self.settings_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         self.settings_button.configure(state="disabled")
