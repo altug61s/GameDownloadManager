@@ -1,5 +1,3 @@
-# downloader.py - Steam & Epic indirme takibi
-
 import os
 import time
 import re
