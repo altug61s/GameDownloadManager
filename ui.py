@@ -15,7 +15,6 @@ from config import load_config, save_config
 
 DISCORD_CLIENT_ID = "1391515807984390264"
 
-# Tema renkleri (dinamik olarak ayarlanacak)
 THEMES = {
     "dark": {
         "bg": "#121212",
@@ -50,25 +49,23 @@ class AnimatedLabel(ctk.CTkLabel):
         self.configure(text="")
         def animate():
             for i in range(len(text) + 1):
-                # UI güncellemeleri için kendi after metodunu kullanın
                 self.after(0, lambda t=text[:i]: self.configure(text=t))
                 time.sleep(delay / 1000)
         threading.Thread(target=animate, daemon=True).start()
 
 class AnimatedFrame(ctk.CTkFrame):
     def fade_in(self, steps=10, duration=300):
-        # Bu kısım kaldırıldı veya basitçe renk ayarlanacak
-        pass # Şu an için bir animasyon yapılmıyor, sadece anında renk ayarlanacak.
+        pass 
 
 class AnimatedButton(ctk.CTkButton):
     def __init__(self, master, app_instance, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.app_instance = app_instance # Uygulama örneğine doğrudan erişim
+        self.app_instance = app_instance
         self.default_color = kwargs.get("fg_color", None)
         self.bind("<Enter>", self.on_hover)
         self.bind("<Leave>", self.on_leave)
         self.bind("<Button-1>", self.on_click)
-        self.update_button_colors() # Başlangıçta renkleri ayarla
+        self.update_button_colors()
 
     def update_button_colors(self):
         current_theme_colors = self.app_instance.get_current_theme_colors()
@@ -93,7 +90,7 @@ class AnimatedButton(ctk.CTkButton):
 class DownloadApp:
     def __init__(self):
         self.config = load_config()
-        ctk.set_appearance_mode(self.config["theme_mode"]) # Tema ayarını başlangıçta uygula
+        ctk.set_appearance_mode(self.config["theme_mode"])
 
         self.root = ctk.CTk()
         self.root.geometry("600x400")
@@ -101,7 +98,6 @@ class DownloadApp:
         self.root.protocol("WM_DELETE_WINDOW", self.hide_window)
         self.root.bind("<Escape>", lambda e: self.hide_settings())
 
-        # Tüm UI elemanlarını burada oluştur
         self.label = AnimatedLabel(self.root, font=("Arial", 20, "bold"))
         self.label.pack(pady=10)
 
@@ -118,40 +114,36 @@ class DownloadApp:
         self.settings_button = AnimatedButton(self.root, self, text="Ayarlar", command=self.show_settings)
         self.settings_button.pack(pady=5)
 
-        # Ayarlar Çerçevesi
-        self.settings_frame = AnimatedFrame(self.root, width=560, height=320) # Yükseklik artırıldı
+        self.settings_frame = AnimatedFrame(self.root, width=560, height=320) 
         self.settings_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         self.settings_frame.place_forget()
 
         settings_title = ctk.CTkLabel(self.settings_frame, text="Ayarlar", font=("Arial", 16, "bold"))
         settings_title.pack(pady=10)
 
-        # Discord RPC Ayarı için BooleanVar
         self.discord_rpc_var = tk.BooleanVar(value=self.config["discord_rpc_enabled"])
         self.discord_rpc_switch = ctk.CTkSwitch(self.settings_frame, text="Discord RPC Etkinleştir",
                                                 command=self.toggle_discord_rpc,
-                                                variable=self.discord_rpc_var, # Değişkeni buraya ata
+                                                variable=self.discord_rpc_var, 
                                                 onvalue=True, offvalue=False)
         self.discord_rpc_switch.pack(pady=5)
 
-        # Tema Ayarı (Açık/Koyu) için StringVar
         self.theme_mode_var = tk.StringVar(value=self.config["theme_mode"])
         self.theme_switch = ctk.CTkSwitch(self.settings_frame, text="Açık Tema",
                                           command=self.toggle_theme,
-                                          variable=self.theme_mode_var, # Değişkeni buraya ata
+                                          variable=self.theme_mode_var,
                                           onvalue="light", offvalue="dark")
         self.theme_switch.pack(pady=5)
 
-        # Epic Games Klasör Ayarları Başlığı
         epic_settings_title = ctk.CTkLabel(self.settings_frame, text="Epic Games Klasör Ayarları", font=("Arial", 14, "bold"))
         epic_settings_title.pack(pady=(15, 5))
 
         self.epic_paths_var = tk.StringVar(value=self.config.get("epic_paths", []))
         self.epic_listbox = tk.Listbox(self.settings_frame, listvariable=self.epic_paths_var, height=6,
-                                       bd=0, highlightthickness=0, selectmode=tk.SINGLE) # Kenarlıklar sıfırlandı
+                                       bd=0, highlightthickness=0, selectmode=tk.SINGLE)
         self.epic_listbox.pack(pady=5, fill="x", padx=20)
 
-        self.btn_frame = ctk.CTkFrame(self.settings_frame) # self.btn_frame olarak tanımlandı
+        self.btn_frame = ctk.CTkFrame(self.settings_frame) 
         self.btn_frame.pack(pady=10)
 
         self.folder_button = AnimatedButton(self.btn_frame, self, text="Klasör Ekle", command=self.add_epic_folder)
@@ -164,16 +156,15 @@ class DownloadApp:
         self.close_settings_button.pack(pady=10)
 
 
-        # Tüm bileşenler oluşturulduktan sonra temayı uygula
         self.apply_theme()
-        self.label.animate_text("\u25CF Game Download Manager") # Animasyonu burada başlat
+        self.label.animate_text("\u25CF Game Download Manager")
 
         self.shutdown_cancelled = False
         self.shutdown_started = False
         self.shutdown_blocked_until_restart = False
 
         self.discord_rpc = None
-        if self.config["discord_rpc_enabled"]: # Sadece etkinse bağlanmayı dene
+        if self.config["discord_rpc_enabled"]:
             threading.Thread(target=self.discord_connect, daemon=True).start()
 
         self.no_download_count = 0
@@ -196,36 +187,33 @@ class DownloadApp:
 
         self.settings_frame.configure(fg_color=colors["frame_bg"])
 
-        # Etiketler
         for label_widget in [self.label, self.info_label, self.timer_label,
-                             self.settings_frame.winfo_children()[0], # settings_title
-                             self.settings_frame.winfo_children()[3]]: # epic_settings_title
+                             self.settings_frame.winfo_children()[0], 
+                             self.settings_frame.winfo_children()[3]]:
             if isinstance(label_widget, (ctk.CTkLabel, AnimatedLabel)):
                 label_widget.configure(text_color=colors["text"])
         
-        # Butonlar
         for btn in [self.cancel_button, self.settings_button, self.folder_button,
                     self.delete_folder_button, self.close_settings_button]:
             if isinstance(btn, (ctk.CTkButton, AnimatedButton)):
-                btn.update_button_colors() # Butonların renklerini güncelle
+                btn.update_button_colors()
 
-        # Switch'ler
         self.discord_rpc_switch.configure(text_color=colors["text"],
                                           button_color=colors["switch_slider_on"],
-                                          button_hover_color=colors["fg"]) # Hover rengini varsayılan ön plan renginden al
+                                          button_hover_color=colors["fg"]) 
         self.theme_switch.configure(text_color=colors["text"],
                                     button_color=colors["switch_slider_on"],
-                                    button_hover_color=colors["fg"]) # Hover rengini varsayılan ön plan renginden al
+                                    button_hover_color=colors["fg"]) 
 
-        # Listbox
+        
         self.epic_listbox.configure(bg=colors["listbox_bg"], fg=colors["listbox_fg"],
                                     selectbackground=colors["listbox_select"],
-                                    selectforeground=colors["listbox_fg"]) # Seçili öğenin metin rengi
+                                    selectforeground=colors["listbox_fg"]) 
 
-        # Buton çerçevesini de güncelle
+        
         self.btn_frame.configure(fg_color=colors["frame_bg"])
 
-        # Tepsi simgesini de güncelle
+        
         self.create_tray_icon()
 
 
@@ -233,21 +221,20 @@ class DownloadApp:
         self.settings_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         self.settings_button.configure(state="disabled")
         self.cancel_button.configure(state="disabled")
-        self.update_ui_colors() # Ayarlar açıldığında renkleri güncelle
+        self.update_ui_colors() 
 
     def hide_settings(self):
         self.settings_frame.place_forget()
         self.settings_button.configure(state="normal")
-        # Kapatma devam ediyorsa iptal butonunu tekrar aktifleştir
         if self.shutdown_started and not self.shutdown_cancelled:
              self.cancel_button.configure(state="normal")
 
 
     def toggle_discord_rpc(self):
-        self.config["discord_rpc_enabled"] = self.discord_rpc_var.get() # Değişkenin değerini al
+        self.config["discord_rpc_enabled"] = self.discord_rpc_var.get() 
         save_config(self.config)
         if self.config["discord_rpc_enabled"]:
-            if not self.discord_rpc: # Eğer bağlı değilse bağlanmayı dene
+            if not self.discord_rpc: 
                 threading.Thread(target=self.discord_connect, daemon=True).start()
         else:
             if self.discord_rpc:
@@ -259,9 +246,9 @@ class DownloadApp:
                     print(f"Discord RPC bağlantısı kesilirken hata: {e}")
 
     def toggle_theme(self):
-        self.config["theme_mode"] = self.theme_mode_var.get() # Değişkenin değerini al
+        self.config["theme_mode"] = self.theme_mode_var.get() 
         save_config(self.config)
-        self.apply_theme() # Yeni temayı uygula
+        self.apply_theme() 
 
     def cancel_shutdown(self):
         self.shutdown_cancelled = True
@@ -306,14 +293,14 @@ class DownloadApp:
                 self.shutdown_cancelled = False
                 self.shutdown_blocked_until_restart = False
                 self.no_download_count = 0
-                if self.config["discord_rpc_enabled"]: # Sadece etkinse güncelle
+                if self.config["discord_rpc_enabled"]: 
                     self.update_discord_status(platform, name)
             else:
                 self.no_download_count += 1
                 if self.no_download_count >= 3 and not self.shutdown_started and not self.shutdown_blocked_until_restart:
                     self.shutdown_started = True
                     self.root.after(0, self.on_download_complete)
-                # İndirme yokken Discord durumunu güncelle
+                
                 if self.config["discord_rpc_enabled"] and self.discord_rpc:
                     try:
                         self.discord_rpc.update(
@@ -336,7 +323,7 @@ class DownloadApp:
                 if self.shutdown_cancelled:
                     self.root.after(0, lambda: self.timer_label.animate_text("Kapatma iptal edildi.", 15))
                     self.shutdown_blocked_until_restart = True
-                    self.shutdown_started = False # Kapatma iptal edildiğinde sıfırla
+                    self.shutdown_started = False
                     return
                 self.root.after(0, lambda val=i: self.timer_label.animate_text(f"Sistem {val} saniye içinde kapanacak...", 15))
                 time.sleep(1)
@@ -345,15 +332,11 @@ class DownloadApp:
         threading.Thread(target=countdown, daemon=True).start()
 
     def create_tray_icon(self):
-        # Tema rengine göre tepsi simgesi oluştur
         colors = self.get_current_theme_colors()
-        # Küçük bir simge için boyutlar
         image = Image.new('RGB', (32, 32), color=colors["bg"])
         draw = ImageDraw.Draw(image)
-        # Merkezi bir daire çiz
-        draw.ellipse((8, 8, 24, 24), fill=colors["fg"]) # Daha küçük daire
+        draw.ellipse((8, 8, 24, 24), fill=colors["fg"]) 
 
-        # Eğer mevcut bir ikon varsa durdur ve yenisini oluştur
         if hasattr(self, 'icon') and self.icon:
             self.icon.stop()
 
@@ -363,7 +346,6 @@ class DownloadApp:
             pystray.MenuItem("Çıkış", self.quit_app)
         )
         self.icon = pystray.Icon("indirme_takipcisi", image, "İndirme Takipçisi", menu)
-        # Sadece bir kere run edilmesi gerekiyor, thread zaten daimi (daemon=True)
         if not hasattr(self, '_icon_thread_started'):
             threading.Thread(target=self.icon.run, daemon=True).start()
             self._icon_thread_started = True
@@ -382,11 +364,11 @@ class DownloadApp:
             except Exception as e:
                 print(f"Discord RPC kapatılırken hata: {e}")
         if hasattr(self, 'icon') and self.icon:
-            self.icon.stop() # Uygulamadan çıkmadan önce tepsi ikonunu durdur
+            self.icon.stop() 
         self.root.quit()
 
     def update_discord_status(self, platform, game_name):
-        if self.discord_rpc and self.config["discord_rpc_enabled"]: # Etkinse ve bağlıysa güncelle
+        if self.discord_rpc and self.config["discord_rpc_enabled"]: 
             try:
                 self.discord_rpc.update(
                     details=f"Oyunu indiriyor: {game_name}",
@@ -397,7 +379,6 @@ class DownloadApp:
             except Exception as e:
                 print(f"[Discord] Status güncellenirken hata: {e}")
         elif not self.config["discord_rpc_enabled"] and self.discord_rpc:
-            # Eğer Discord RPC kapatıldıysa ve hala bağlıysa, bağlantıyı kes
             try:
                 self.discord_rpc.close()
                 self.discord_rpc = None
@@ -417,7 +398,6 @@ class DownloadApp:
                 self.discord_rpc.connect()
                 print("Discord RPC bağlandı.")
 
-                # Aktiviteyi güncelle
                 self.discord_rpc.update(
                     details="Oyun İndirme Takibi Açık",
                     state="Bekleniyor",
@@ -426,7 +406,7 @@ class DownloadApp:
                 break
             except Exception as e:
                 print("Discord RPC bağlanamadı:", e)
-                self.discord_rpc = None # Bağlantı başarısız olursa sıfırla
+                self.discord_rpc = None 
                 time.sleep(60)
 
     def run(self):
